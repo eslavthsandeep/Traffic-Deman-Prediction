@@ -1,0 +1,114 @@
+================================================================================
+APPROACH: Traffic Demand Prediction - Flipkart GRID
+================================================================================
+
+FINAL SCORE: 97.60 / 100 (R2 = 0.9760)
+
+================================================================================
+1. DATA UNDERSTANDING
+================================================================================
+- Train: 77,299 rows x 11 columns (2 days: 48, 49)
+- Test: 41,778 rows x 10 columns (day 49 only)
+- Target: demand (continuous, 0 to 1)
+- Evaluation Metric: max(0, 100 * R2_score)
+- 96 timestamps per day (15-minute intervals)
+- 1,249 unique geohashes (locations)
+
+================================================================================
+2. MISSING VALUE HANDLING
+================================================================================
+- RoadType (0.78% missing): Filled with mode (Residential)
+- Temperature (3.23% missing): Hierarchical median imputation
+  -> First try: median by (geohash, hour, Weather)
+  -> Then: median by (hour, Weather)
+  -> Then: median by (Weather)
+  -> Finally: global median
+- Weather (1.03% missing): Filled with mode (Sunny)
+
+================================================================================
+3. FEATURE ENGINEERING (75 Features from 10 Raw Columns)
+================================================================================
+
+A) TIME FEATURES (13 features):
+   - hour, minute, minutes_since_midnight
+   - Cyclical encoding: hour_sin/cos, minute_sin/cos
+   - time_slot (Night/Morning/Noon/Evening/Late Night)
+   - Binary flags: is_morning, is_afternoon, is_evening, is_night, is_rush_hour
+   - quarter_of_day
+
+B) DAY FEATURES (5 features):
+   - day_of_week (day % 7), is_weekend
+   - Cyclical: dow_sin/cos, day_normalized
+
+C) GEOHASH FEATURES (13 features) - MOST IMPORTANT:
+   - Frequency encoding, Label encoding
+   - Geohash prefix at 4 and 5 char levels
+   - Geohash x Hour interaction (label encoded)
+   - Geohash x TimeSlot interaction
+   - Target encoding: geo_demand_mean/median/std/count
+   - Target encoding: geo_hour_demand_mean/median
+   - Target encoding: geo_dow_demand_mean
+
+D) ROAD FEATURES (10 features):
+   - RoadType_encoded, LargeVehicles_binary, Landmarks_binary
+   - road_capacity = NumberofLanes * (1 + LargeVehicles)
+   - landmark_lane_interaction, road_complexity
+   - road_lanes_encoded, road_demand_mean/std
+
+E) TEMPERATURE FEATURES (5 features):
+   - Temperature, temp_bin (Cold/Cool/Moderate/Hot)
+   - temp_category, temp_squared, temp_normalized
+
+F) WEATHER FEATURES (9 features):
+   - One-hot encoding (Foggy, Rainy, Snowy, Sunny)
+   - Weather_encoded, weather_severity, is_bad_weather
+   - weather_demand_mean/std (target encoding)
+
+G) INTERACTION FEATURES (10 features) - LEADERBOARD BOOSTERS:
+   - Geohash x RoadType, Geohash x Weather
+   - RoadType x Weather, Hour x Weather
+   - Geohash x DayOfWeek
+   - Target-encoded versions of above interactions
+
+H) AGGREGATE FEATURES (7 features):
+   - hour_demand_mean/std/median
+   - timeslot_demand_mean/median
+   - dow_demand_mean/median, lane_demand_mean
+
+================================================================================
+4. MODELS USED
+================================================================================
+
+All models trained with 5-Fold Cross-Validation:
+
+| Model       | OOF R2   | Score  |
+|-------------|----------|--------|
+| CatBoost    | 0.975417 | 97.54  |
+| LightGBM    | 0.975241 | 97.52  |
+| XGBoost     | 0.973423 | 97.34  |
+| ExtraTrees  | 0.968733 | 96.87  |
+
+================================================================================
+5. ENSEMBLE STRATEGY
+================================================================================
+
+Optimal blend found via grid search:
+- 50% LightGBM + 50% CatBoost
+- Final OOF R2: 0.975983
+- Final Score: 97.60
+
+================================================================================
+6. TOOLS & LIBRARIES
+================================================================================
+- Python 3.10
+- pandas, numpy, scikit-learn
+- LightGBM, XGBoost, CatBoost
+- matplotlib, seaborn (for EDA)
+
+================================================================================
+7. KEY INSIGHTS
+================================================================================
+- #1 feature: geo_hour_demand_mean (geohash x hour target encoding)
+- Traffic demand is primarily driven by LOCATION (geohash) and TIME (hour)
+- Target encoding with proper train-only computation prevents data leakage
+- CatBoost and LightGBM have complementary error patterns -> strong ensemble

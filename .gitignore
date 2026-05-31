@@ -1,0 +1,37 @@
+# Dataset (too large for GitHub)
+dataset/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Virtual environments
+venv/
+env/
+.env/
+
+# IDE / Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Tool configs
+.qodo/
+.gemini/
+
+# CatBoost training logs (auto-generated)
+catboost_info/
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Archives
+*.zip
