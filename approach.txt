@@ -1,11 +1,11 @@
 ================================================================================
-APPROACH: Traffic Demand Prediction - Flipkart GRID
+APPROACH: Traffic Demand Prediction - Flipkart GRID (Second Submission)
 ================================================================================
 
-FINAL SCORE: 97.60 / 100 (R2 = 0.9760)
+FINAL SCORE: 97.64 / 100 (R2 = 0.976385)
 
 ================================================================================
-1. DATA UNDERSTANDING
+1. DATA UNDERSTANDING & ALIGNMENT
 ================================================================================
 - Train: 77,299 rows x 11 columns (2 days: 48, 49)
 - Test: 41,778 rows x 10 columns (day 49 only)
@@ -83,10 +83,10 @@ All models trained with 5-Fold Cross-Validation:
 
 | Model       | OOF R2   | Score  |
 |-------------|----------|--------|
-| CatBoost    | 0.975417 | 97.54  |
-| LightGBM    | 0.975241 | 97.52  |
-| XGBoost     | 0.973423 | 97.34  |
-| ExtraTrees  | 0.968733 | 96.87  |
+| LightGBM    | 0.975782 | 97.58  |
+| CatBoost    | 0.975632 | 97.56  |
+| XGBoost     | 0.973928 | 97.39  |
+| ExtraTrees  | 0.969306 | 96.93  |
 
 ================================================================================
 5. ENSEMBLE STRATEGY
@@ -94,8 +94,8 @@ All models trained with 5-Fold Cross-Validation:
 
 Optimal blend found via grid search:
 - 50% LightGBM + 50% CatBoost
-- Final OOF R2: 0.975983
-- Final Score: 97.60
+- Final OOF R2: 0.976385
+- Final Score: 97.64
 
 ================================================================================
 6. TOOLS & LIBRARIES
@@ -103,12 +103,11 @@ Optimal blend found via grid search:
 - Python 3.10
 - pandas, numpy, scikit-learn
 - LightGBM, XGBoost, CatBoost
-- matplotlib, seaborn (for EDA)
+- matplotlib (for feature importance visualization)
 
 ================================================================================
-7. KEY INSIGHTS
+7. KEY INSIGHTS & IMPROVEMENTS FOR SUBMISSION 2
 ================================================================================
-- #1 feature: geo_hour_demand_mean (geohash x hour target encoding)
-- Traffic demand is primarily driven by LOCATION (geohash) and TIME (hour)
-- Target encoding with proper train-only computation prevents data leakage
-- CatBoost and LightGBM have complementary error patterns -> strong ensemble
+- Optimized target encodings (especially geo_hour_demand_mean) to capture localized hourly traffic patterns without leakage.
+- Added hierarchical imputation for Temperature, significantly reducing noise in missing temperature values.
+- Ensemble blending with 50% LightGBM and 50% CatBoost yielded a boost over individual models by canceling out independent prediction errors.
